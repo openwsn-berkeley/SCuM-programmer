@@ -10,7 +10,7 @@ The Single Chip micro-Mote (SCuM) is a 2x3mm2 single-chip standard-compatible Sm
 
 _Note_: you only need to do this once.
 
-- download `scum-programmer.hex` from the https://github.com/openwsn-berkeley/SCuM-programmer/latest 
+- download `scum-programmer.hex` from the https://github.com/openwsn-berkeley/SCuM-programmer/releases/latest/
 - plug in your nRF52840-DK into your computer, drive "JLINK" appears
 - drag-and-drop `scum-programmer.hex` onto this drive
 - when the LEDs of the board go round-and-round, you're set!
@@ -19,7 +19,15 @@ _Note_: you only need to do this once.
 
 ### interact with SCuM's serial port
 
-_Coming soon!_
+* Connect SCuM's UART to the following pins on the nRF52840-DK
+
+| DK      | SCuM                     |
+| ------- | ------------------------ |
+| `P0.02` | UART TX (SCuM transmits) |
+| `P0.26` | UART RX (SCuM receives)  |
+| `GND`   | `GND`                    |
+
+* open the serial port corresponding to your nRF52840-DK using a serial terminal (e.g. TeraTerm), using **19200 baud**.
 
 ### load code onto SCuM
 
