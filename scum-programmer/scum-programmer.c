@@ -8,6 +8,7 @@ SCuM programmer.
 
 const uint8_t APP_VERSION[]         = {0x00,0x01};
 
+#define UART_BUF_SIZE               1
 #define NUM_LEDS                    4
 
 // https://infocenter.nordicsemi.com/index.jsp?topic=%2Fug_nrf52840_dk%2FUG%2Fdk%2Fhw_buttons_leds.html
@@ -32,6 +33,10 @@ void uarts_init(void);
 
 typedef struct {
     uint32_t       led_counter;
+    uint8_t        uart_buf_DK_RX[UART_BUF_SIZE];
+    uint8_t        uart_buf_DK_TX[UART_BUF_SIZE];
+    uint8_t        uart_buf_SCuM_RX[UART_BUF_SIZE];
+    uint8_t        uart_buf_SCuM_TX[UART_BUF_SIZE];
 } app_vars_t;
 
 app_vars_t app_vars;
@@ -41,8 +46,11 @@ typedef struct {
     uint32_t       num_ISR_RTC0_IRQHandler;
     uint32_t       num_ISR_RTC0_IRQHandler_COMPARE0;
     uint32_t       num_ISR_UARTE0_UART0_IRQHandler;
-    uint32_t       num_ISR_UARTE0_UART0_IRQHandler_RXDRDY;
-
+    uint32_t       num_ISR_UARTE0_UART0_IRQHandler_ENDRX;
+    uint32_t       num_ISR_UARTE0_UART0_IRQHandler_ENDTX;
+    uint32_t       num_ISR_UARTE1_IRQHandler;
+    uint32_t       num_ISR_UARTE1_IRQHandler_ENDRX;
+    uint32_t       num_ISR_UARTE1_IRQHandler_ENDTX;
 } app_dbg_t;
 
 app_dbg_t app_dbg;
@@ -91,7 +99,6 @@ void hfclock_start(void) {
     NRF_CLOCK->EVENTS_HFCLKSTARTED     = 0;
     NRF_CLOCK->TASKS_HFCLKSTART        = 0x00000001;
     while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);
-
 }
 
 //=== led
@@ -148,31 +155,37 @@ void uarts_init(void) {
     
     // https://infocenter.nordicsemi.com/topic/ug_nrf52840_dk/UG/dk/vir_com_port.html
     // P0.05	RTS
-    // P0.06	TXD
+    // P0.06	TXD <===
     // P0.07	CTS
-    // P0.08	RXD
+    // P0.08	RXD <===
     
     // configure
-    NRF_UART0->ENABLE                  = 0x00000004; // 4==enable
-    NRF_UART0->PSEL.RTS                = 0x00000005; // 0x00000005==P0.5
-    NRF_UART0->PSEL.TXD                = 0x00000006; // 0x00000006==P0.6
-    NRF_UART0->PSEL.CTS                = 0x00000007; // 0x00000007==P0.7
-    NRF_UART0->PSEL.RXD                = 0x00000008; // 0x00000008==P0.8
-    NRF_UART0->CONFIG                  = 0x00000000; // 0x00000000==no flow control, no parity bits, 1 stop bit
-    NRF_UART0->BAUDRATE                = 0x004EA000; // 0x004EA000==19200 baud (actual rate: 19208)
-    NRF_UART0->TASKS_STARTTX           = 0x00000001; // 0x00000001==start TX state machine; write byte to TXD register to send
-    NRF_UART0->TASKS_STARTRX           = 0x00000001; // 0x00000001==start RX state machine; read received byte from RXD register
+    NRF_UARTE0->RXD.PTR                = (uint32_t)app_vars.uart_buf_DK_RX;
+    NRF_UARTE0->RXD.MAXCNT             = UART_BUF_SIZE;
+    NRF_UARTE0->TXD.PTR                = (uint32_t)app_vars.uart_buf_DK_TX;
+    NRF_UARTE0->TXD.MAXCNT             = UART_BUF_SIZE;
+    NRF_UARTE0->PSEL.TXD               = 0x00000006; // 0x00000006==P0.6
+    NRF_UARTE0->PSEL.RXD               = 0x00000008; // 0x00000008==P0.8
+    NRF_UARTE0->CONFIG                 = 0x00000000; // 0x00000000==no flow control, no parity bits, 1 stop bit
+    NRF_UARTE0->BAUDRATE               = 0x004EA000; // 0x004EA000==19200 baud (actual rate: 19208)
+    NRF_UARTE0->TASKS_STARTRX          = 0x00000001; // 0x00000001==start RX state machine; read received byte from RXD register
     //  3           2            1           0
     // 1098 7654 3210 9876 5432 1098 7654 3210
     // .... .... .... .... .... .... .... ...A A: CTS
     // .... .... .... .... .... .... .... ..B. B: NCTS
     // .... .... .... .... .... .... .... .C.. C: RXDRDY
-    // .... .... .... .... .... .... D... .... D: RXDRDY
-    // .... .... .... .... .... ..E. .... .... E: ERROR
-    // .... .... .... ..F. .... .... .... .... F: RXTO
-    // xxxx xxxx xxxx xx0x xxxx xx0x 0xxx x100 
-    //    0    0    0    0    0    0    0    4 0x00000004
-    NRF_UART0->INTENSET                = 0x00000004;
+    // .... .... .... .... .... .... ...D .... D: ENDRX
+    // .... .... .... .... .... .... E... .... E: TXDRDY
+    // .... .... .... .... .... ...F .... .... F: ENDTX
+    // .... .... .... .... .... ..G. .... .... G: ERROR
+    // .... .... .... ..H. .... .... .... .... H: RXTO
+    // .... .... .... I... .... .... .... .... I: RXSTARTED
+    // .... .... ...J .... .... .... .... .... J: TXSTARTED
+    // .... .... .L.. .... .... .... .... .... L: TXSTOPPED
+    // xxxx xxxx x0x0 0x0x xxxx xx01 0xx1 x000 
+    //    0    0    0    0    0    1    1    0 0x00000110
+    NRF_UARTE0->INTENSET               = 0x00000110;
+    NRF_UARTE0->ENABLE                 = 0x00000008; // 0x00000008==enable
     
     // enable interrupts
     NVIC_SetPriority(UARTE0_UART0_IRQn, 1);
@@ -180,25 +193,38 @@ void uarts_init(void) {
     NVIC_EnableIRQ(UARTE0_UART0_IRQn);
 
     //=== UART1 to SCuM
-    
-    // configure
-    NRF_UARTE1->ENABLE                 = 0x00000004; // 4==enable
-    NRF_UARTE1->PSEL.TXD               = 0x00000006; // 0x00000006==P0.6
-    NRF_UARTE1->PSEL.RXD               = 0x00000008; // 0x00000008==P0.8
-    NRF_UARTE1->CONFIG                 = 0x00000000; // 0x00000000==no flow control, no parity bits, no stop bits
+    // TX: P0.26
+    // RX: P0.02
+    // FTDI cable:
+    //     - black  GND
+    //     - Orange TXD
+    //     - yellow RXD
+    NRF_UARTE1->RXD.PTR                = (uint32_t)app_vars.uart_buf_SCuM_RX;
+    NRF_UARTE1->RXD.MAXCNT             = UART_BUF_SIZE;
+    NRF_UARTE1->TXD.PTR                = (uint32_t)app_vars.uart_buf_SCuM_TX;
+    NRF_UARTE1->TXD.MAXCNT             = UART_BUF_SIZE;
+    NRF_UARTE1->PSEL.TXD               = 0x0000001a; // 0x0000001a==P0.26
+    NRF_UARTE1->PSEL.RXD               = 0x00000002; // 0x00000002==P0.02
+    NRF_UARTE1->CONFIG                 = 0x00000000; // 0x00000000==no flow control, no parity bits, 1 stop bit
     NRF_UARTE1->BAUDRATE               = 0x004EA000; // 0x004EA000==19200 baud (actual rate: 19208)
-    NRF_UARTE1->TASKS_STARTTX          = 0x00000001; // 0x00000001==start TX state machine; write byte to TXD register to send
+    NRF_UARTE1->TASKS_STARTRX          = 0x00000001; // 0x00000001==start RX state machine; read received byte from RXD register
     //  3           2            1           0
     // 1098 7654 3210 9876 5432 1098 7654 3210
     // .... .... .... .... .... .... .... ...A A: CTS
     // .... .... .... .... .... .... .... ..B. B: NCTS
     // .... .... .... .... .... .... .... .C.. C: RXDRDY
-    // .... .... .... .... .... .... D... .... D: RXDRDY
-    // .... .... .... .... .... ..E. .... .... E: ERROR
-    // .... .... .... ..F. .... .... .... .... F: RXTO
-    // xxxx xxxx xxxx xx0x xxxx xx0x 0xxx x100 
-    //    0    0    0    0    0    0    0    4 0x00000004
-    NRF_UARTE1->INTENSET               = 0x00000004;
+    // .... .... .... .... .... .... ...D .... D: ENDRX
+    // .... .... .... .... .... .... E... .... E: TXDRDY
+    // .... .... .... .... .... ...F .... .... F: ENDTX
+    // .... .... .... .... .... ..G. .... .... G: ERROR
+    // .... .... .... ..H. .... .... .... .... H: RXTO
+    // .... .... .... I... .... .... .... .... I: RXSTARTED
+    // .... .... ...J .... .... .... .... .... J: TXSTARTED
+    // .... .... .L.. .... .... .... .... .... L: TXSTOPPED
+    // xxxx xxxx x0x0 0x0x xxxx xx01 0xx1 x000 
+    //    0    0    0    0    0    1    1    0 0x00000110
+    NRF_UARTE1->INTENSET               = 0x00000110;
+    NRF_UARTE1->ENABLE                 = 0x00000008; // 0x00000008==enable
     
     // enable interrupts
     NVIC_SetPriority(UARTE1_IRQn, 1);
@@ -235,29 +261,71 @@ void UARTE0_UART0_IRQHandler(void) {
     // debug
     app_dbg.num_ISR_UARTE0_UART0_IRQHandler++;
 
-    if (NRF_UART0->EVENTS_RXDRDY == 0x00000001) {
+    if (NRF_UARTE0->EVENTS_ENDRX == 0x00000001) {
         // byte received from DK
 
         // clear
-        NRF_UART0->EVENTS_RXDRDY = 0x00000000;
+        NRF_UARTE0->EVENTS_ENDRX = 0x00000000;
 
         // debug
-        app_dbg.num_ISR_UARTE0_UART0_IRQHandler_RXDRDY++;
+        app_dbg.num_ISR_UARTE0_UART0_IRQHandler_ENDRX++;
 
         // send byte to SCuM
-        NRF_UART0->TXD = NRF_UART0->RXD;
+        app_vars.uart_buf_SCuM_TX[0] = app_vars.uart_buf_DK_RX[0];
+
+        // start sending
+        NRF_UARTE1->EVENTS_TXSTARTED = 0x00000000;
+        NRF_UARTE1->TASKS_STARTTX = 0x00000001;
+        while (NRF_UARTE1->EVENTS_TXSTARTED == 0x00000000);
+    }
+    if (NRF_UARTE0->EVENTS_ENDTX == 0x00000001) {
+        // byte sent to SCuM
+
+        // clear
+        NRF_UARTE0->EVENTS_ENDTX = 0x00000000;
+
+        // stop
+        NRF_UARTE0->EVENTS_TXSTOPPED = 0x00000000;
+        NRF_UARTE0->TASKS_STOPTX = 0x00000001;
+        while (NRF_UARTE0->EVENTS_TXSTOPPED == 0x00000000);
+
+        // debug
+        app_dbg.num_ISR_UARTE0_UART0_IRQHandler_ENDTX++;
     }
 }
 
 void UARTE1_IRQHandler(void) {
-    
-    if (NRF_UARTE1->EVENTS_RXDRDY == 0x00000001) {
+
+    // debug
+    app_dbg.num_ISR_UARTE1_IRQHandler++;
+
+    if (NRF_UARTE1->EVENTS_ENDRX == 0x00000001) {
         // byte received from SCuM
 
         // clear
-        NRF_UARTE1->EVENTS_RXDRDY = 0x00000000;
+        NRF_UARTE1->EVENTS_ENDRX = 0x00000000;
+
+        // debug
+        app_dbg.num_ISR_UARTE1_IRQHandler_ENDRX++;
 
         // send byte to DK
-        NRF_UART0->TXD = 0x7e; // NRF_UARTE1->RXD;
+        app_vars.uart_buf_DK_TX[0] = app_vars.uart_buf_SCuM_RX[0];
+
+        // start sending
+        NRF_UARTE0->EVENTS_TXSTARTED = 0x00000000;
+        NRF_UARTE0->TASKS_STARTTX = 0x00000001;
+        while (NRF_UARTE0->EVENTS_TXSTARTED == 0x00000000);
+    }
+    if (NRF_UARTE1->EVENTS_ENDTX == 0x00000001) {
+        // byte transmitted to from DK
+
+        // clear
+        NRF_UARTE1->EVENTS_ENDTX = 0x00000000;
+
+        // stop
+        NRF_UARTE1->TASKS_STOPTX = 0x00000001;
+
+        // debug
+        app_dbg.num_ISR_UARTE1_IRQHandler_ENDTX++;
     }
 }
