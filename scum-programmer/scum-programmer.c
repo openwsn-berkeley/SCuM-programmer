@@ -47,10 +47,8 @@ typedef struct {
     uint32_t       num_ISR_RTC0_IRQHandler_COMPARE0;
     uint32_t       num_ISR_UARTE0_UART0_IRQHandler;
     uint32_t       num_ISR_UARTE0_UART0_IRQHandler_ENDRX;
-    uint32_t       num_ISR_UARTE0_UART0_IRQHandler_ENDTX;
     uint32_t       num_ISR_UARTE1_IRQHandler;
     uint32_t       num_ISR_UARTE1_IRQHandler_ENDRX;
-    uint32_t       num_ISR_UARTE1_IRQHandler_ENDTX;
 } app_dbg_t;
 
 app_dbg_t app_dbg;
@@ -182,9 +180,9 @@ void uarts_init(void) {
     // .... .... .... I... .... .... .... .... I: RXSTARTED
     // .... .... ...J .... .... .... .... .... J: TXSTARTED
     // .... .... .L.. .... .... .... .... .... L: TXSTOPPED
-    // xxxx xxxx x0x0 0x0x xxxx xx01 0xx1 x000 
-    //    0    0    0    0    0    1    1    0 0x00000110
-    NRF_UARTE0->INTENSET               = 0x00000110;
+    // xxxx xxxx x0x0 0x0x xxxx xx00 0xx1 x000 
+    //    0    0    0    0    0    0    1    0 0x00000010
+    NRF_UARTE0->INTENSET               = 0x00000010;
     NRF_UARTE0->ENABLE                 = 0x00000008; // 0x00000008==enable
     
     // enable interrupts
@@ -221,9 +219,9 @@ void uarts_init(void) {
     // .... .... .... I... .... .... .... .... I: RXSTARTED
     // .... .... ...J .... .... .... .... .... J: TXSTARTED
     // .... .... .L.. .... .... .... .... .... L: TXSTOPPED
-    // xxxx xxxx x0x0 0x0x xxxx xx01 0xx1 x000 
-    //    0    0    0    0    0    1    1    0 0x00000110
-    NRF_UARTE1->INTENSET               = 0x00000110;
+    // xxxx xxxx x0x0 0x0x xxxx xx00 0xx1 x000 
+    //    0    0    0    0    0    0    1    0 0x00000010
+    NRF_UARTE1->INTENSET               = 0x00000010;
     NRF_UARTE1->ENABLE                 = 0x00000008; // 0x00000008==enable
     
     // enable interrupts
@@ -278,20 +276,6 @@ void UARTE0_UART0_IRQHandler(void) {
         NRF_UARTE1->TASKS_STARTTX = 0x00000001;
         while (NRF_UARTE1->EVENTS_TXSTARTED == 0x00000000);
     }
-    if (NRF_UARTE0->EVENTS_ENDTX == 0x00000001) {
-        // byte sent to SCuM
-
-        // clear
-        NRF_UARTE0->EVENTS_ENDTX = 0x00000000;
-
-        // stop
-        NRF_UARTE0->EVENTS_TXSTOPPED = 0x00000000;
-        NRF_UARTE0->TASKS_STOPTX = 0x00000001;
-        while (NRF_UARTE0->EVENTS_TXSTOPPED == 0x00000000);
-
-        // debug
-        app_dbg.num_ISR_UARTE0_UART0_IRQHandler_ENDTX++;
-    }
 }
 
 void UARTE1_IRQHandler(void) {
@@ -315,17 +299,5 @@ void UARTE1_IRQHandler(void) {
         NRF_UARTE0->EVENTS_TXSTARTED = 0x00000000;
         NRF_UARTE0->TASKS_STARTTX = 0x00000001;
         while (NRF_UARTE0->EVENTS_TXSTARTED == 0x00000000);
-    }
-    if (NRF_UARTE1->EVENTS_ENDTX == 0x00000001) {
-        // byte transmitted to from DK
-
-        // clear
-        NRF_UARTE1->EVENTS_ENDTX = 0x00000000;
-
-        // stop
-        NRF_UARTE1->TASKS_STOPTX = 0x00000001;
-
-        // debug
-        app_dbg.num_ISR_UARTE1_IRQHandler_ENDTX++;
     }
 }
