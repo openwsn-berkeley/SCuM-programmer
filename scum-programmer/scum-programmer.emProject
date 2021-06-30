@@ -31,6 +31,7 @@
       gcc_entry_point="Reset_Handler"
       link_linker_script_file="$(ProjectDir)/ses_nrf52840_xxaa.icf"
       linker_memory_map_file="$(ProjectDir)/nRF52840_xxAA_MemoryMap.xml"
+      linker_output_format="bin"
       linker_section_placement_file="$(ProjectDir)/flash_placement.xml"
       macros="NRFHeaderFile=$(PackagesDir)/nRF/Device/Include/nrf.h;DeviceHeaderFile=$(PackagesDir)/nRF/Device/Include/nrf52840.h;DeviceSystemFile=$(PackagesDir)/nRF/Device/Source/system_nrf52.c;DeviceVectorsFile=$(PackagesDir)/nRF/Device/Startup/ses_startup_nrf52840.s;DeviceLinkerScript=$(PackagesDir)/nRF/Device/Linker/ses_nrf52840_xxaa.icf;DeviceMemoryMap=$(PackagesDir)/nRF/Device/MemoryMap/nRF52840_xxAA_MemoryMap.xml;DeviceLibraryIdentifier=M4lf;DeviceFamily=nRF;Target=nRF52840_xxAA;Placement=Flash"
       package_dependencies="CMSIS-CORE_V5"
@@ -83,4 +84,5 @@
     gcc_debugging_level="Level 2"
     gcc_omit_frame_pointer="Yes"
     gcc_optimization_level="Level 2 balanced" />
+  <configuration Name="Common" linker_output_format="hex" />
 </solution>
