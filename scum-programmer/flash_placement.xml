@@ -34,4 +34,7 @@
     <ProgramSection alignment="4" load="No" name=".data2_run" />
     <ProgramSection alignment="4" load="No" name=".bss2" />
   </MemorySegment>
+  <MemorySegment name="UICR" start="$(UICR_START)" size="$(UICR_SIZE)">
+    <ProgramSection alignment="4" keep="Yes" load="Yes" name=".uicr_regout0" start="0x10001304" size="4"/>
+  </MemorySegment>
 </Root>

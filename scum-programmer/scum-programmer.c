@@ -2,6 +2,7 @@
 SCuM programmer.
 */
 
+#include "uicr_config.h"
 #include "nrf52840.h"
 
 //=========================== defines =========================================
