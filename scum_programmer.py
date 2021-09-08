@@ -1,11 +1,14 @@
-import serial
+# built-in
 import random
+# third party
+import serial
+# local
+
 
 #========================== classes =========================================
 
 class HdlcException(Exception):
     pass
-
 
 class OpenHdlc(object):
     HDLC_FLAG           = 0x7e
