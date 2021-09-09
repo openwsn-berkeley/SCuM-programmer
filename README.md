@@ -21,11 +21,11 @@ _Note_: you only need to do this once.
 
 * Connect SCuM's UART to the following pins on the nRF52840-DK
 
-| DK      | SCuM                     |
-| ------- | ------------------------ |
-| `P0.02` | UART TX (SCuM transmits) |
-| `P0.26` | UART RX (SCuM receives)  |
-| `GND`   | `GND`                    |
+| DK      | SCuM                     | FTDI cable (for testing) |
+| ------- | ------------------------ | ------------------------ |
+| `P0.02` | UART TX (SCuM transmits) | orange wire              |
+| `P0.26` | UART RX (SCuM receives)  | yellow wire              |
+| `GND`   | `GND`                    | black wire               |
 
 * open the serial port corresponding to your nRF52840-DK using a serial terminal (e.g. TeraTerm), using **19200 baud**.
 
