@@ -1,3 +1,4 @@
 /02_firmware_nRF52840-DK/Output
 *.emSession
 *.jlink
+__pycache__
