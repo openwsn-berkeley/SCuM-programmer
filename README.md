@@ -46,4 +46,4 @@ _Coming soon!_
 
 - `pip install pytest`
 - `cd 01_software`
-- `pytest tests` (or `pytest tests/unit` for only the unit tests
+- `pytest tests` (or `pytest tests/unit` for only the unit tests)
