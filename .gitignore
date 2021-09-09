@@ -2,3 +2,4 @@
 *.emSession
 *.jlink
 __pycache__
+/01_software/test_*.log

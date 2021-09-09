@@ -41,3 +41,9 @@ _Coming soon!_
 
 - install SEGGER Embedded Studio for ARM (Nordic Edition)
 - open `scum-programmer/scum-programmer.emProject`
+
+# test
+
+- `pip install pytest`
+- `cd 01_software`
+- `pytest tests` (or `pytest tests/unit` for only the unit tests
