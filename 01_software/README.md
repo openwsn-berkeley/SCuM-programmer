@@ -1,6 +1,6 @@
 # build
 
-- `pip install --upgrade setuptools build`
+- `pip install --upgrade pip setuptools build`
 - `cd 01_software`
 - `python -m build`
 
@@ -9,8 +9,10 @@
 - `cd 01_software`
 - `pip install .`
 
-After installation, you should be able to run the `scum` commmand from anywhere.
+After installation, verify you can the `scumprogrammer` commmand from any directory.
 
 # uninstall locally
 
-- `pip uninstall scum-programmer`
+- `pip uninstall scumprogrammer`
+
+After installation, verify you can no longer run the `scumprogrammer` commmand.
