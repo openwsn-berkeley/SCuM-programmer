@@ -16,4 +16,5 @@ jobs:
         pip install -r 01_software/requirements.txt
     - name: Test with pytest
       run: |
-        pytest 01_software/tests/
+        cd 01_software/
+        pytest tests/
