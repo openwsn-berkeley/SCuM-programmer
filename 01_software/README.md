@@ -16,3 +16,13 @@ After installation, verify you can the `scumprogrammer` commmand from any direct
 - `pip uninstall scumprogrammer`
 
 After installation, verify you can no longer run the `scumprogrammer` commmand.
+
+# upload to PyPI
+
+- create an API token after logging in at https://pypi.org/ (it's a long string starting with `pypi-`)
+- `pip install --upgrade twine`
+- `cd 01_software`
+- `twine upload dist/*`
+    - username: `__token__`
+    - password: the entire token above, including the `pypi-` prefix
+- update appears at https://pypi.org/project/scumprogrammer/
