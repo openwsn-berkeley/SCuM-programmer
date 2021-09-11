@@ -3,3 +3,5 @@
 *.jlink
 __pycache__
 /01_software/test_*.log
+/01_software/dist/
+*.egg-info
