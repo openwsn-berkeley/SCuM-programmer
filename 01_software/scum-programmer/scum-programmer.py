@@ -367,7 +367,7 @@ def test():
         #_serial.write(bytes(hdlc_data))
 
 def main():
-    scumProgrammer = ScumProgrammer()
+    print('This is the SCuM program')
 
 if __name__=='__main__':
     main()
