@@ -1,8 +1,8 @@
 # built-in
 import threading
-import time
 # third party
 # local
+import VERSION
 
 class InterfaceCli(threading.Thread):
     BANNER = [
@@ -21,7 +21,7 @@ class InterfaceCli(threading.Thread):
     
     def run(self):
         try:
-            self._playIntro()
+            self._printBanner()
             while True:
                 cmd = input()
                 cmd = cmd.strip()
@@ -31,5 +31,12 @@ class InterfaceCli(threading.Thread):
             print(type(err))
             print(err)
     
-    def _playIntro(self):
-        print('\n'.join(self.BANNER))
+    def _printBanner(self):
+        output = self.BANNER+ \
+        [
+            '',
+            'running version {}'.format(VERSION.VERSION),
+            '',
+            'enter \'q\' to exit',
+        ]
+        print('\n'.join(output))
