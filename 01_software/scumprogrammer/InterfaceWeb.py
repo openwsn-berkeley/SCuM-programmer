@@ -1,0 +1,2 @@
+class InterfaceWeb(object):
+    pass

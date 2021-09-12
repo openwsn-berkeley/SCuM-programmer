@@ -1,0 +1,2 @@
+class ScumConnector(object):
+    pass
