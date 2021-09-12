@@ -12,7 +12,7 @@ import InterfaceCli
 
 def main():
     scumConnector = ScumConnector.ScumConnector()
-    interfaceWeb  = InterfaceWeb.InterfaceWeb{}
+    interfaceWeb  = InterfaceWeb.InterfaceWeb()
     interfaceCli  = InterfaceCli.InterfaceCli()
 
 if __name__== "__main__":

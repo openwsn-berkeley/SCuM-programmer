@@ -4,7 +4,7 @@ import time
 # third party
 import blessed
 
-class FancyCli(threading.Thread):
+class InterfaceCli(threading.Thread):
     BANNER = [
     '   _____  _____      __  __ ',
     '  / ____|/ ____|    |  \/  |',
@@ -16,8 +16,8 @@ class FancyCli(threading.Thread):
     ]
     def __init__(self, *a, **kw):
         self.term = blessed.Terminal()
-        super(FancyCli, self).__init__(*a, **kw)
-        self.name = 'FancyCli'
+        super(InterfaceCli, self).__init__(*a, **kw)
+        self.name = 'InterfaceCli'
         self.start()
     
     def run(self):
