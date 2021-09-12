@@ -6,8 +6,8 @@ import pkg_resources
 import bottle
 import threading
 # local
-import VERSION
-import ScumUtils as u
+from scumprogrammer import VERSION
+from scumprogrammer import ScumUtils as u
 
 class InterfaceWeb(object):
     

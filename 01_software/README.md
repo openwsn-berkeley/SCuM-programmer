@@ -1,3 +1,9 @@
+# run from source
+
+- `cd 01_software`
+- `pip install -r requirements.txt`
+- `python -m scumprogrammer`
+
 # build
 
 - `pip install --upgrade pip setuptools build`

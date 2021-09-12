@@ -4,7 +4,7 @@ import time
 # third party
 import serial
 # local
-import ScumUtils as u
+from scumprogrammer import ScumUtils as u
 
 class ScumConnector(threading.Thread):
     

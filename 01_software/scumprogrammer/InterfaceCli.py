@@ -2,8 +2,8 @@
 import threading
 # third party
 # local
-import VERSION
-import ScumUtils as u
+from scumprogrammer import VERSION
+from scumprogrammer import ScumUtils as u
 
 class InterfaceCli(threading.Thread):
     BANNER = [
