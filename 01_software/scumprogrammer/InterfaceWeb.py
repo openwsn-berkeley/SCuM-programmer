@@ -1,4 +1,5 @@
 # built-in
+import os
 import webbrowser
 # third party
 import bottle
@@ -16,6 +17,9 @@ class InterfaceWeb(object):
         # store params
         
         # local variables
+        
+        # adapt template folder
+        bottle.TEMPLATE_PATH.insert(0,os.path.join('scumprogrammer','views'))
         
         # start web server
         self.websrv          = bottle.Bottle()
