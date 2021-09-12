@@ -7,13 +7,19 @@ import ScumUtils as u
 
 class InterfaceCli(threading.Thread):
     BANNER = [
-    '   _____  _____      __  __ ',
-    '  / ____|/ ____|    |  \/  |',
-    ' | (___ | |    _   _| \  / |',
-    '  \___ \| |   | | | | |\/| |',
-    '  ____) | |___| |_| | |  | |',
-    ' |_____/ \_____\__,_|_|  |_|',
-    '         www.crystalfree.org',
+        '   _____  _____      __  __ ',
+        '  / ____|/ ____|    |  \/  |',
+        ' | (___ | |    _   _| \  / |',
+        '  \___ \| |   | | | | |\/| |',
+        '  ____) | |___| |_| | |  | |',
+        ' |_____/ \_____\__,_|_|  |_|',
+        '         www.crystalfree.org',
+        '',
+        'Running version {}'.format(VERSION.VERSION),
+        '',
+        'Your web browser has started automatically, that\'s the main interface of this program.',
+        '',
+        'Enter \'q\' then Enter to exit.',
     ]
     def __init__(self, *a, **kw):
         super(InterfaceCli, self).__init__(*a, **kw)
@@ -32,11 +38,4 @@ class InterfaceCli(threading.Thread):
             u.handleCrash(self.name,err)
     
     def _printBanner(self):
-        output = self.BANNER+ \
-        [
-            '',
-            'running version {}'.format(VERSION.VERSION),
-            '',
-            'enter \'q\' to exit',
-        ]
-        print('\n'.join(output))
+        print('\n'.join(self.BANNER))
