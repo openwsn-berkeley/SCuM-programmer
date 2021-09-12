@@ -71,23 +71,6 @@ class ScumProgrammer(object):
 
 #========================== main ==============================================
 
-def test():
-    _hdlc               = OpenHdlc()
-    _serial             = serial.Serial('COM6', 19200)
-    
-    for run in range(10000):
-        length          = random.randint(1,1000)
-        data            = []
-        for i in range(length):
-            data       += [random.randint(0x00,0xff)]
-        hdlc_data       = _hdlc.hdlcify(data)
-        dehdlc_data     = _hdlc.dehdlcify(hdlc_data)
-        assert dehdlc_data == data
-        if run%1000==0:
-            print(run)
-        
-        #_serial.write(bytes(hdlc_data))
-
 def main():
     print('This is the SCuM program')
 
