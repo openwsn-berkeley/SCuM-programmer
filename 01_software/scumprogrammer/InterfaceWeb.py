@@ -23,7 +23,8 @@ class InterfaceWeb(object):
         
         # start web server
         self.websrv          = bottle.Bottle()
-        self.websrv.route('/', 'GET', self._webhandle_root_GET)
+        self.websrv.route('/',                   'GET',    self._webhandle_root_GET)
+        self.websrv.route('/static/<filename>',  'GET',    self._webhandle_static_GET)
         self.webthread = threading.Thread(
             target = self._bottle_try_running_forever,
             args   = (self.websrv.run,),
@@ -52,6 +53,9 @@ class InterfaceWeb(object):
             'index',
             version = VERSION.VERSION,
         )
+    
+    def _webhandle_static_GET(self,filename):
+        return bottle.static_file(filename, root='scumprogrammer/static/')
     
     #=== web server admin
     
