@@ -3,6 +3,7 @@ import threading
 # third party
 # local
 import VERSION
+import ScumUtils as u
 
 class InterfaceCli(threading.Thread):
     BANNER = [
@@ -28,8 +29,7 @@ class InterfaceCli(threading.Thread):
                 if cmd=='q':
                     break
         except Exception as err:
-            print(type(err))
-            print(err)
+            u.handleCrash(self.name,err)
     
     def _printBanner(self):
         output = self.BANNER+ \

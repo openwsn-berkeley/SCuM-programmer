@@ -4,6 +4,7 @@ import time
 # third party
 import serial
 # local
+import ScumUtils as u
 
 class ScumConnector(threading.Thread):
     
@@ -23,14 +24,12 @@ class ScumConnector(threading.Thread):
         self.start()
     
     def run(self):
-    
-        while True:
-            try:
+        try:
+            while True:
                 time.sleep(1)
                 ser = serial.Serial(self.serialport,19200)
-            except Exception as err:
-                print(type(err))
-                print(err)
+        except Exception as err:
+            u.handleCrash(self.name,err)
     
     #======================== public ==========================================
     
