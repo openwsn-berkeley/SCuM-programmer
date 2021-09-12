@@ -21,11 +21,16 @@ _Note_: you only need to do this once.
 
 * Connect SCuM's UART to the following pins on the nRF52840-DK
 
-| DK      | SCuM                     | FTDI cable (for testing) |
-| ------- | ------------------------ | ------------------------ |
-| `P0.02` | UART TX (SCuM transmits) | orange wire              |
-| `P0.26` | UART RX (SCuM receives)  | yellow wire              |
-| `GND`   | `GND`                    | black wire               |
+| DK      | SCuM                     | description                         |
+| ------- | ------------------------ | ----------------------------------- |
+| `VBAT`  | `VDDIO`                  | provides power to SCuM (1.8V)       |
+| `VBAT`  | bootload src select      | configure SCuM to bootload over 3wb |
+| `P0.28` | `3WB_CLK`                | 3-wire bus, clock signal            |
+| `P0.29` | `3WB_DATA`               | 3-wire bus, data signal             |
+| `P0.30` | `3WB_EN`                 | 3-wire bus, enable signal           |
+| `P0.31` | `HRESET`                 | hardware reset                      |
+| `P0.03` | `VDDD`                   | to perform a "tap" operation        |
+| `GND`   | `GND`                    | ground                              |
 
 * open the serial port corresponding to your nRF52840-DK using a serial terminal (e.g. TeraTerm), using **19200 baud**.
 
