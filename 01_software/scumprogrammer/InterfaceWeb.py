@@ -1,6 +1,7 @@
 # built-in
 import os
 import webbrowser
+import pkg_resources
 # third party
 import bottle
 import threading
@@ -18,8 +19,11 @@ class InterfaceWeb(object):
         
         # local variables
         
-        # adapt template folder
-        bottle.TEMPLATE_PATH.insert(0,os.path.join('scumprogrammer','views'))
+        # find data files
+        #     (they are at different location when running from
+        #      source code or after installing through pip)
+        self.folder_views    = pkg_resources.resource_filename(__name__, 'views/')
+        self.folder_static   = pkg_resources.resource_filename(__name__, 'static/')
         
         # start web server
         self.websrv          = bottle.Bottle()
@@ -35,6 +39,7 @@ class InterfaceWeb(object):
                 'debug': False,
             }
         )
+        bottle.TEMPLATE_PATH.insert(0,self.folder_views)
         self.webthread.name = 'InterfaceWeb'
         self.webthread.daemon= True
         self.webthread.start()
@@ -55,7 +60,7 @@ class InterfaceWeb(object):
         )
     
     def _webhandle_static_GET(self,filename):
-        return bottle.static_file(filename, root='scumprogrammer/static/')
+        return bottle.static_file(filename, root=self.folder_static)
     
     #=== web server admin
     
