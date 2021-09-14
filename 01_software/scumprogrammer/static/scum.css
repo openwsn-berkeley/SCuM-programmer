@@ -27,6 +27,14 @@
     background-color: #f0f0f0;
 }
 
+.uartchatbg {
+    fill:             blue;
+}
+
+.uartchatmsg {
+    fill:             white;
+}
+
 #spectrumpane {
     position:         absolute;
     top:              60px;
@@ -34,6 +42,11 @@
     background-color: white;
     border-width:     0px;
     background-color: #f0f0f0;
+}
+
+.rssibars {
+    stroke:           blue;
+    stroke-width:     2px;
 }
 
 #versionlabel {

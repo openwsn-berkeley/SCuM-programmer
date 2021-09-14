@@ -2,6 +2,7 @@
 import os
 import webbrowser
 import pkg_resources
+import random
 # third party
 import bottle
 import threading
@@ -74,6 +75,7 @@ class InterfaceWeb(object):
                     ['SCuM',     'This is SCum!'],
                     ['SCuM',     'This is SCum!'],
                 ],
+            },
             'spectrumpane':  {
                 'rssis': [random.randint(-100,-30) for _ in range(80)],
             },
