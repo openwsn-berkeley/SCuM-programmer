@@ -55,17 +55,29 @@ class InterfaceWeb(object):
     #=== web handlers
     
     def _webhandle_root_GET(self):
-        return bottle.template(
-            'index',
-            version = VERSION.VERSION,
-        )
+        return bottle.template('index')
     
     def _webhandle_static_GET(self,filename):
         return bottle.static_file(filename, root=self.folder_static)
     
     def _webhandle_data_GET(self):
         return {
-            'versionlabel': 'scumprogrammer {} (up-to-date)'.format(VERSION.VERSION),
+            'statuspane':    {
+                'labelcomputer': 'AllGpioToggle.bin',
+                'labelgateway':  'scum-programmer 2.0.1<br/>version 2.0.3 available, <a>upgrade instructions</a>',
+                'labelscum':     'AllGpioToggle.bin<br/>running for 53 s',
+            },
+            'uartpane':      {
+                'messages': [
+                    ['computer', 'test'],
+                    ['SCuM',     'This is SCum!'],
+                    ['SCuM',     'This is SCum!'],
+                    ['SCuM',     'This is SCum!'],
+                ],
+            'spectrumpane':  {
+                'rssis': [random.randint(-100,-30) for _ in range(80)],
+            },
+            'versionlabel':  'scumprogrammer {} (up-to-date)'.format(VERSION.VERSION),
         }
     
     #=== web server admin
