@@ -16,12 +16,14 @@ function updateUI(data) {
     
     d3.select("#statuspane")
        .attr("width",  fullWidth)
-       .attr("height", fullHeight*0.50-10);
+       .attr("height", fullHeight*0.50-10)
+       .attr("viewBox", '0 0 500 100')
+       .attr("preserveAspectRatio", 'none');
     d3.select("#uartpane")
        .style("top",   50+fullHeight*0.50+10)
        .attr("height", fullHeight*0.50)
        .attr("width",  fullWidth*0.40-10)
-       .attr("viewBox", '0 0 100 100')
+       .attr("viewBox", '0 0 200 100')
        .attr("preserveAspectRatio", 'none');
     d3.select("#spectrumpane")
        .attr("width",  fullWidth*0.60)
@@ -50,14 +52,31 @@ function updateUI(data) {
 
 function updateStatuspane(data) {
     svg = d3.select("#statuspane");
+    
+    if (statuspaneinitialized==false) {
+        
+        svg
+            .append("text")
+                .attr("x", 1)
+                .attr("y", 6)
+                .text('status')
+                .attr("class",  "panetitle");
+        
+        statuspaneinitialized = true;
+    }
 }
 
 function updateUartpane(data) {
     svg = d3.select("#uartpane");
     
-    if (statuspaneinitialized==false) {
+    if (uartpaneinitialized==false) {
         
         svg
+            .append("text")
+                .attr("x", 1)
+                .attr("y", 6)
+                .text('uart')
+                .attr("class",  "panetitle")
             .append("rect")
                 .attr("x",      0)
                 .attr("y",      90)
@@ -65,13 +84,25 @@ function updateUartpane(data) {
                 .attr("height", 10)
                 .attr("class",  "uartchatbg");
         
-        statuspaneinitialized = true;
+        uartpaneinitialized = true;
     }
 }
 
 function updateSpectrumpane(data) {
     
     svg = d3.select("#spectrumpane");
+    
+    if (spectrumpaneinitialized==false) {
+        
+        svg
+            .append("text")
+                .attr("x", 1)
+                .attr("y", 6)
+                .text('spectrum')
+                .attr("class",  "panetitle")
+        
+        spectrumpaneinitialized = true;
+    }
     
     var rssibars  = svg.selectAll(".rssibars")
         .data(data.rssis);

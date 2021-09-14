@@ -10,6 +10,12 @@
     text-align:       right;
 }
 
+.panetitle {
+    text-align:       left;
+    font-family:      Helvetica, sans-serif;
+    font-size:        7px;
+}
+
 #statuspane {
     position:         absolute;
     top:              60px;
