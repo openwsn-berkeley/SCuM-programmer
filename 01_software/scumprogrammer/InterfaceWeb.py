@@ -3,6 +3,7 @@ import os
 import webbrowser
 import pkg_resources
 import random
+import time
 # third party
 import bottle
 import threading
@@ -19,6 +20,7 @@ class InterfaceWeb(object):
         # store params
         
         # local variables
+        self.startTs         = time.time()
         
         # find data files
         #     (they are at different location when running from
@@ -62,11 +64,30 @@ class InterfaceWeb(object):
         return bottle.static_file(filename, root=self.folder_static)
     
     def _webhandle_data_GET(self):
+    
+        animdur = 20
+        uptime  = (time.time()-self.startTs)%animdur
+        chunks  = []
+        print(uptime)
+        if   uptime<(1/3)*animdur:
+            chunks   = [0]*64
+        elif uptime<(2/3)*animdur:
+            progress = (uptime-(animdur/3))/(animdur/3)
+            numright = int(64*progress)
+            chunks   = [1]*numright+[0]*(64-numright)
+        else:
+            progress = (uptime-(2*animdur/3))/(animdur/3)
+            numright  = int(64*progress)
+            chunks   = [2]*numright+[1]*(64-numright)
+        print(chunks)
+        assert len(chunks)==64
+    
         return {
             'statuspane':    {
                 'labelcomputer': 'AllGpioToggle.bin',
                 'labelgateway':  'scum-programmer 2.0.1<br/>version 2.0.3 available, <a>upgrade instructions</a>',
                 'labelscum':     'AllGpioToggle.bin<br/>running for 53 s',
+                'chunks':        chunks,
             },
             'uartpane':      {
                 'messages': [

@@ -60,10 +60,57 @@ function updateStatuspane(data) {
                 .attr("x", 1)
                 .attr("y", 6)
                 .text('status')
-                .attr("class",  "panetitle");
+                .attr("class",  "panetitle")
+        svg
+            .append("rect")
+                .attr("x",      150)
+                .attr("y",      60)
+                .attr("class",  "button");
+        svg
+            .append("text")
+                .attr("x",      150+1)
+                .attr("y",      60+6)
+                .text('transfer')
+                .attr("class",  "buttontext")
+        svg
+            .append("rect")
+                .attr("x",      300)
+                .attr("y",      50)
+                .attr("class",  "button");
+        svg
+            .append("text")
+                .attr("x",      300+1)
+                .attr("y",      50+6)
+                .text('bootload')
+                .attr("class",  "buttontext")
+        svg
+            .append("rect")
+                .attr("x",      300)
+                .attr("y",      70)
+                .attr("class",  "button");
+        svg
+            .append("text")
+                .attr("x",      300+1)
+                .attr("y",      70+6)
+                .text('reset')
+                .attr("class",  "buttontext")
         
         statuspaneinitialized = true;
     }
+    
+    var chunks  = svg.selectAll(".chunks")
+        .data(data.chunks);
+    chunks
+        .transition()
+            .attr("x",      function(d,i) { return 40+150*d+10*(i%8); })
+            .attr("y",      function(d,i) { return 50+5*Math.floor(i/8); });
+    chunks
+        .enter().append("rect")
+            .attr("x",      function(d,i) { return 40+150*d+10*(i%8); })
+            .attr("y",      function(d,i) { return 50+5*Math.floor(i/8); })
+            .attr("width",  4)
+            .attr("height", 3)
+            .attr("class", "chunks");
 }
 
 function updateUartpane(data) {
@@ -77,6 +124,7 @@ function updateUartpane(data) {
                 .attr("y", 6)
                 .text('uart')
                 .attr("class",  "panetitle")
+        svg
             .append("rect")
                 .attr("x",      0)
                 .attr("y",      90)
@@ -108,10 +156,7 @@ function updateSpectrumpane(data) {
         .data(data.rssis);
     rssibars
         .transition()
-            .attr("x1", function(d,i) { return 4+3*i; })
-            .attr("y1", function(d,i) { return 95+d; })
-            .attr("x2", function(d,i) { return 4+3*i; })
-            .attr("y2", function(d,i) { return 95; });
+            .attr("y1", function(d,i) { return 95+d; });
     rssibars
         .enter().append("line")
             .attr("x1", function(d,i) { return 4+3*i; })

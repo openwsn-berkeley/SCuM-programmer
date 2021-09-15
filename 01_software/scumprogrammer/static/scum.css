@@ -1,7 +1,7 @@
 #pagetitle {
     position:         absolute;
     top:              10px;
-    right:             10px;
+    right:            10px;
     height:           40px;
     font-style:       normal;
     font-family:      Helvetica, sans-serif;
@@ -23,6 +23,19 @@
     background-color: white;
     border-width:     0px;
     background-color: #f0f0f0;
+}
+
+.button {
+    fill:             blue;
+    width:            20px;
+    height:           10px;
+}
+
+.buttontext {
+    text-align:       left;
+    font-family:      Helvetica, sans-serif;
+    font-size:        4px;
+    fill:             white;
 }
 
 #uartpane {
