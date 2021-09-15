@@ -25,6 +25,12 @@
     background-color: #f0f0f0;
 }
 
+.firmwaretext {
+    text-align:       left;
+    font-family:      Helvetica, sans-serif;
+    font-size:        6px;
+}
+
 .button {
     fill:             blue;
     width:            20px;

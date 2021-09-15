@@ -62,6 +62,16 @@ function updateStatuspane(data) {
                 .text('status')
                 .attr("class",  "panetitle")
         svg
+            .append("text")
+                .attr("x",      80)
+                .attr("y",      30)
+                .attr("class",  "firmwaretext labelcomputer")
+        svg
+            .append("text")
+                .attr("x",      80)
+                .attr("y",      40)
+                .attr("class",  "firmwaretext labelcomputerinfo")
+        svg
             .append("rect")
                 .attr("x",      150)
                 .attr("y",      60)
@@ -72,6 +82,16 @@ function updateStatuspane(data) {
                 .attr("y",      60+6)
                 .text('transfer')
                 .attr("class",  "buttontext")
+        svg
+            .append("text")
+                .attr("x",      220)
+                .attr("y",      30)
+                .attr("class",  "firmwaretext labelgateway")
+        svg
+            .append("text")
+                .attr("x",      220)
+                .attr("y",      40)
+                .attr("class",  "firmwaretext labelgatewayinfo")
         svg
             .append("rect")
                 .attr("x",      300)
@@ -94,9 +114,32 @@ function updateStatuspane(data) {
                 .attr("y",      70+6)
                 .text('reset')
                 .attr("class",  "buttontext")
+        svg
+            .append("text")
+                .attr("x",      400)
+                .attr("y",      30)
+                .attr("class",  "firmwaretext labelscum")
+        svg
+            .append("text")
+                .attr("x",      400)
+                .attr("y",      40)
+                .attr("class",  "firmwaretext labelscuminfo")
         
         statuspaneinitialized = true;
     }
+    
+    svg.selectAll(".labelcomputer")
+        .text(data.labelcomputer[0])
+    svg.selectAll(".labelcomputerinfo")
+        .text(data.labelcomputer[1])
+    svg.selectAll(".labelgateway")
+        .text(data.labelgateway[0])
+    svg.selectAll(".labelgatewayinfo")
+        .text(data.labelgateway[1])
+    svg.selectAll(".labelscum")
+        .text(data.labelscum[0])
+    svg.selectAll(".labelscuminfo")
+        .text(data.labelscum[1])
     
     var chunks  = svg.selectAll(".chunks")
         .data(data.chunks);

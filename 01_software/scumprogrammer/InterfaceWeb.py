@@ -66,40 +66,40 @@ class InterfaceWeb(object):
     def _webhandle_data_GET(self):
     
         # simulating a file being transferred
-        animdur = 20
-        uptime  = (time.time()-self.startTs)%animdur
-        chunks  = []
+        animdur         = 20
+        uptime          = (time.time()-self.startTs)%animdur
+        chunks          = []
         if   uptime<(1/3)*animdur:
-            chunks   = [0]*64
+            chunks      = [0]*64
         elif uptime<(2/3)*animdur:
-            progress = (uptime-(animdur/3))/(animdur/3)
-            numright = int(64*progress)
-            chunks   = [1]*numright+[0]*(64-numright)
+            progress    = (uptime-(animdur/3))/(animdur/3)
+            numright    = int(64*progress)
+            chunks      = [1]*numright+[0]*(64-numright)
         else:
-            progress = (uptime-(2*animdur/3))/(animdur/3)
-            numright  = int(64*progress)
-            chunks   = [2]*numright+[1]*(64-numright)
+            progress    = (uptime-(2*animdur/3))/(animdur/3)
+            numright    = int(64*progress)
+            chunks      = [2]*numright+[1]*(64-numright)
         assert len(chunks)==64
     
         return {
             'statuspane':    {
-                'labelcomputer': 'AllGpioToggle.bin',
-                'labelgateway':  'scum-programmer 2.0.1<br/>version 2.0.3 available, <a>upgrade instructions</a>',
-                'labelscum':     'AllGpioToggle.bin<br/>running for 53 s',
-                'chunks':        chunks,
+                'labelcomputer':  ['AllGpioToggle.bin',''],
+                'labelgateway':   ['scum-programmer 2.0.1','version 2.0.3 available'],
+                'labelscum':      ['AllGpioToggle.bin','running for {} s'.format(int(time.time()-self.startTs))],
+                'chunks':         chunks,
             },
             'uartpane':      {
                 'messages': [
-                    ['computer', 'test'],
-                    ['SCuM',     'This is SCum!'],
-                    ['SCuM',     'This is SCum!'],
-                    ['SCuM',     'This is SCum!'],
+                    ['computer',  'test'],
+                    ['SCuM',      'This is SCum!'],
+                    ['SCuM',      'This is SCum!'],
+                    ['SCuM',      'This is SCum!'],
                 ],
             },
             'spectrumpane':  {
-                'rssis': [random.randint(-100,-30) for _ in range(80)],
+                'rssis':          [random.randint(-100,-30) for _ in range(80)],
             },
-            'versionlabel':  'scumprogrammer {} (up-to-date)'.format(VERSION.VERSION),
+            'versionlabel':       'scumprogrammer {} (up-to-date)'.format(VERSION.VERSION),
         }
     
     #=== web server admin
