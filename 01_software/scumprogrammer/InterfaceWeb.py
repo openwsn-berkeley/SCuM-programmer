@@ -65,10 +65,10 @@ class InterfaceWeb(object):
     
     def _webhandle_data_GET(self):
     
+        # simulating a file being transferred
         animdur = 20
         uptime  = (time.time()-self.startTs)%animdur
         chunks  = []
-        print(uptime)
         if   uptime<(1/3)*animdur:
             chunks   = [0]*64
         elif uptime<(2/3)*animdur:
@@ -79,7 +79,6 @@ class InterfaceWeb(object):
             progress = (uptime-(2*animdur/3))/(animdur/3)
             numright  = int(64*progress)
             chunks   = [2]*numright+[1]*(64-numright)
-        print(chunks)
         assert len(chunks)==64
     
         return {
