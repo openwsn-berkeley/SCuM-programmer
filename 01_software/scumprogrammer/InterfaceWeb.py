@@ -32,6 +32,8 @@ class InterfaceWeb(object):
         self.websrv          = bottle.Bottle()
         self.websrv.route('/',                   'GET',    self._webhandle_root_GET)
         self.websrv.route('/static/<filename>',  'GET',    self._webhandle_static_GET)
+        self.websrv.route('/favicon.ico',        'GET',    self._webhandle_favicon_GET)
+        
         self.websrv.route('/data.json',  'GET',            self._webhandle_data_GET)
         self.webthread = threading.Thread(
             target = self._bottle_try_running_forever,
@@ -62,6 +64,9 @@ class InterfaceWeb(object):
     
     def _webhandle_static_GET(self,filename):
         return bottle.static_file(filename, root=self.folder_static)
+    
+    def _webhandle_favicon_GET(self):
+        return bottle.static_file('favicon.ico', root=self.folder_static)
     
     def _webhandle_data_GET(self):
     

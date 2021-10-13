@@ -2,14 +2,36 @@ var statuspaneinitialized   = false;
 var uartpaneinitialized     = false;
 var spectrumpaneinitialized = false;
 
+function loadSvg() {
+    d3.xml( "/static/scumprogrammer_ui.svg")
+       .then(data => {
+            // append the SVG to the document
+            document.body.append(data.documentElement);
+            
+            // build the page for the first time
+            buildPage();
+            
+            // load data periodically
+            setInterval(function() {
+                getData()
+            }, 100);
+       })
+}
+
+function buildPage() {
+    console.log('buildPage');
+}
+    
 function getData() {
+    console.log('getData');
     $.getJSON( "/data.json", function( data ) {
         updateUI(data);
     });
 }
 
 function updateUI(data) {
-    
+    console.log('updateUI');
+    return; // poipoi
     // (re)position panes
     fullWidth  = $(window).width()-20;
     fullHeight = $(window).height()-90;
