@@ -1,3 +1,7 @@
-/scum-programmer/Output
+/02_firmware_nRF52840-DK/Output
 *.emSession
 *.jlink
+__pycache__
+/01_software/test_*.log
+/01_software/dist/
+*.egg-info
