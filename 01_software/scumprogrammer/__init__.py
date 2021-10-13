@@ -11,6 +11,6 @@ from scumprogrammer import InterfaceCli
 #========================== main ==============================================
 
 def main_app():
-    scumConnector = ScumConnector.ScumConnector()
-    interfaceWeb  = InterfaceWeb.InterfaceWeb()
+    scumConnector = ScumConnector.ScumConnector(serialport='COM6')
+    interfaceWeb  = InterfaceWeb.InterfaceWeb(scumConnector)
     interfaceCli  = InterfaceCli.InterfaceCli()

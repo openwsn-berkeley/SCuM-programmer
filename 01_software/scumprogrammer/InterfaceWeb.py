@@ -14,13 +14,17 @@ from scumprogrammer import ScumUtils as u
 class InterfaceWeb(object):
     
     TCPPORT                  = 8080
+    DFLT_BINFILE             = 'C:\\Users\\twatteyn\\Desktop\\AllGPIOToggle.bin'
     
-    def __init__(self):
+    def __init__(self,scumConnector):
         
         # store params
+        self.scumConnector   = scumConnector
         
         # local variables
         self.startTs         = time.time()
+        self.binfile         = self.DFLT_BINFILE
+        self.GPIOcalIsOn     = False
         
         # find data files
         #     (they are at different location when running from
@@ -34,8 +38,9 @@ class InterfaceWeb(object):
         self.websrv.route('/static/<filename>',  'GET',    self._webhandle_static_GET)
         self.websrv.route('/favicon.ico',        'GET',    self._webhandle_favicon_GET)
         
-        self.websrv.route('/data.json',  'GET',            self._webhandle_data_GET)
-        self.webthread = threading.Thread(
+        self.websrv.route('/data.json',          'GET',    self._webhandle_data_GET)
+        self.websrv.route('/action.json',        'POST',   self._webhandle_action_POST)
+        self.webthread            = threading.Thread(
             target = self._bottle_try_running_forever,
             args   = (self.websrv.run,),
             kwargs = {
@@ -46,8 +51,8 @@ class InterfaceWeb(object):
             }
         )
         bottle.TEMPLATE_PATH.insert(0,self.folder_views)
-        self.webthread.name = 'InterfaceWeb'
-        self.webthread.daemon= True
+        self.webthread.name       = 'InterfaceWeb'
+        self.webthread.daemon     = True
         self.webthread.start()
         
         # open browser
@@ -69,43 +74,27 @@ class InterfaceWeb(object):
         return bottle.static_file('favicon.ico', root=self.folder_static)
     
     def _webhandle_data_GET(self):
-    
-        # simulating a file being transferred
-        animdur         = 20
-        uptime          = (time.time()-self.startTs)%animdur
-        chunks          = []
-        if   uptime<(1/3)*animdur:
-            chunks      = [0]*64
-        elif uptime<(2/3)*animdur:
-            progress    = (uptime-(animdur/3))/(animdur/3)
-            numright    = int(64*progress)
-            chunks      = [1]*numright+[0]*(64-numright)
-        else:
-            progress    = (uptime-(2*animdur/3))/(animdur/3)
-            numright    = int(64*progress)
-            chunks      = [2]*numright+[1]*(64-numright)
-        assert len(chunks)==64
-    
         return {
-            'statuspane':    {
-                'labelcomputer':  ['AllGpioToggle.bin',''],
-                'labelgateway':   ['scum-programmer 2.0.1','version 2.0.3 available'],
-                'labelscum':      ['AllGpioToggle.bin','running for {} s'.format(int(time.time()-self.startTs))],
-                'chunks':         chunks,
+            'cellText': {
+                'versions':       'software: {}'.format(VERSION.VERSION),
+                'serialport':     self.scumConnector.get_serialport(),
+                'binfile':        self.binfile,
             },
-            'uartpane':      {
-                'messages': [
-                    ['computer',  'test'],
-                    ['SCuM',      'This is SCum!'],
-                    ['SCuM',      'This is SCum!'],
-                    ['SCuM',      'This is SCum!'],
-                ],
-            },
-            'spectrumpane':  {
-                'rssis':          [random.randint(-100,-30) for _ in range(80)],
-            },
-            'versionlabel':       'scumprogrammer {} (up-to-date)'.format(VERSION.VERSION),
+            'isconnected':        self.scumConnector.get_isconnected(),
+            'GPIOcalIsOn':        self.GPIOcalIsOn,
         }
+    
+    def _webhandle_action_POST(self):
+        cmdjson = bottle.request.json
+        elem    = cmdjson['element'][len("button_"):-len("_rect")]
+        if   elem=='bootload':
+            self.scumConnector.bootload(self.binfile)
+        elif elem=='reset':
+            self.scumConnector.reset()
+        elif elem=='GPIOcal':
+            self.scumConnector.GPIOcal(isOn=self.GPIOcalIsOn)
+            self.GPIOcalIsOn = not self.GPIOcalIsOn
+        return {}
     
     #=== web server admin
     
