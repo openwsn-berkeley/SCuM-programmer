@@ -33,7 +33,7 @@
       linker_memory_map_file="$(ProjectDir)/nRF52840_xxAA_MemoryMap.xml"
       linker_output_format="bin"
       linker_section_placement_file="$(ProjectDir)/flash_placement.xml"
-	  linker_section_placement_macros="FLASH_PH_START=0x0;FLASH_PH_SIZE=0x100000;RAM_PH_START=0x20000000;RAM_PH_SIZE=0x40000;FLASH_START=0x0;FLASH_SIZE=0x100000;RAM_START=0x20000000;RAM_SIZE=0x40000;UICR_START=0x10001000;UICR_SIZE=0x308"
+      linker_section_placement_macros="FLASH_PH_START=0x0;FLASH_PH_SIZE=0x100000;RAM_PH_START=0x20000000;RAM_PH_SIZE=0x40000;FLASH_START=0x0;FLASH_SIZE=0x100000;RAM_START=0x20000000;RAM_SIZE=0x40000;UICR_START=0x10001000;UICR_SIZE=0x308"
       linker_section_placements_segments="FLASH RX 0x0 0x100000;RAM1 RWX 0x20000000 0x40000;UICR RX 0x10001000 0x308"
       macros="NRFHeaderFile=$(PackagesDir)/nRF/Device/Include/nrf.h;DeviceHeaderFile=$(PackagesDir)/nRF/Device/Include/nrf52840.h;DeviceSystemFile=$(PackagesDir)/nRF/Device/Source/system_nrf52.c;DeviceVectorsFile=$(PackagesDir)/nRF/Device/Startup/ses_startup_nrf52840.s;DeviceLinkerScript=$(PackagesDir)/nRF/Device/Linker/ses_nrf52840_xxaa.icf;DeviceMemoryMap=$(PackagesDir)/nRF/Device/MemoryMap/nRF52840_xxAA_MemoryMap.xml;DeviceLibraryIdentifier=M4lf;DeviceFamily=nRF;Target=nRF52840_xxAA;Placement=Flash"
       package_dependencies="CMSIS-CORE_V5"
@@ -66,6 +66,8 @@
     <folder Name="Source Files">
       <configuration Name="Common" filter="c;cpp;cxx;cc;h;s;asm;inc" />
       <file file_name="SCuM-programmer.c" />
+      <file file_name="openhdlc.c" />
+      <file file_name="openhdlc.h" />
     </folder>
     <folder Name="System Files">
       <file file_name="SEGGER_THUMB_Startup.s" />

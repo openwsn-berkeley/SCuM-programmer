@@ -4,6 +4,7 @@ SCuM programmer.
 
 #include "uicr_config.h"
 #include "nrf52840.h"
+#include "openhdlc.h"
 
 //=========================== defines =========================================
 
@@ -24,11 +25,12 @@ const uint8_t APP_VERSION[]         = {0x00,0x01};
 
 //=========================== prototypes ======================================
 
+void openhdlc_rx(uint8_t* rxFrame, uint8_t rxFrameLen);
 void lfxtal_start(void);
 void hfclock_start(void);
 void led_enable(void);
 void led_advance(void);
-void uarts_init(void);
+void uart1_init(void);
 
 //=========================== variables =======================================
 
@@ -57,7 +59,7 @@ app_dbg_t app_dbg;
 //=========================== main ============================================
 
 int main(void) {
-    
+
     // main loop
     while(1) {
         
@@ -65,7 +67,8 @@ int main(void) {
         lfxtal_start();
         hfclock_start();
         led_enable();
-        uarts_init();
+        uart1_init();
+        openhdlc_init(&openhdlc_rx);
 
         // wait for event
         __SEV(); // set event
@@ -77,13 +80,17 @@ int main(void) {
     }
 }
 
-//=========================== bsp =============================================
+//=========================== private =========================================
+
+void openhdlc_rx(uint8_t* rxFrame, uint8_t rxFrameLen) {
+    // TODO
+}
 
 //=== lfxtal
 
 void lfxtal_start(void) {
     
-    // start 32kHz XTAL
+    // start 32 kHz XTAL
     NRF_CLOCK->LFCLKSRC                = 0x00000001; // 1==XTAL
     NRF_CLOCK->EVENTS_LFCLKSTARTED     = 0;
     NRF_CLOCK->TASKS_LFCLKSTART        = 0x00000001;
@@ -147,51 +154,11 @@ void led_advance(void) {
     }
 }
 
-void uarts_init(void) {
+void uart1_init(void) {
     // do after HFCLOCK started
 
-    //=== UART0 to DK
-    
-    // https://infocenter.nordicsemi.com/topic/ug_nrf52840_dk/UG/dk/vir_com_port.html
-    // P0.05	RTS
-    // P0.06	TXD <===
-    // P0.07	CTS
-    // P0.08	RXD <===
-    
-    // configure
-    NRF_UARTE0->RXD.PTR                = (uint32_t)app_vars.uart_buf_DK_RX;
-    NRF_UARTE0->RXD.MAXCNT             = UART_BUF_SIZE;
-    NRF_UARTE0->TXD.PTR                = (uint32_t)app_vars.uart_buf_DK_TX;
-    NRF_UARTE0->TXD.MAXCNT             = UART_BUF_SIZE;
-    NRF_UARTE0->PSEL.TXD               = 0x00000006; // 0x00000006==P0.6
-    NRF_UARTE0->PSEL.RXD               = 0x00000008; // 0x00000008==P0.8
-    NRF_UARTE0->CONFIG                 = 0x00000000; // 0x00000000==no flow control, no parity bits, 1 stop bit
-    NRF_UARTE0->BAUDRATE               = 0x004EA000; // 0x004EA000==19200 baud (actual rate: 19208)
-    NRF_UARTE0->TASKS_STARTRX          = 0x00000001; // 0x00000001==start RX state machine; read received byte from RXD register
-    //  3           2            1           0
-    // 1098 7654 3210 9876 5432 1098 7654 3210
-    // .... .... .... .... .... .... .... ...A A: CTS
-    // .... .... .... .... .... .... .... ..B. B: NCTS
-    // .... .... .... .... .... .... .... .C.. C: RXDRDY
-    // .... .... .... .... .... .... ...D .... D: ENDRX
-    // .... .... .... .... .... .... E... .... E: TXDRDY
-    // .... .... .... .... .... ...F .... .... F: ENDTX
-    // .... .... .... .... .... ..G. .... .... G: ERROR
-    // .... .... .... ..H. .... .... .... .... H: RXTO
-    // .... .... .... I... .... .... .... .... I: RXSTARTED
-    // .... .... ...J .... .... .... .... .... J: TXSTARTED
-    // .... .... .L.. .... .... .... .... .... L: TXSTOPPED
-    // xxxx xxxx x0x0 0x0x xxxx xx00 0xx1 x000 
-    //    0    0    0    0    0    0    1    0 0x00000010
-    NRF_UARTE0->INTENSET               = 0x00000010;
-    NRF_UARTE0->ENABLE                 = 0x00000008; // 0x00000008==enable
-    
-    // enable interrupts
-    NVIC_SetPriority(UARTE0_UART0_IRQn, 1);
-    NVIC_ClearPendingIRQ(UARTE0_UART0_IRQn);
-    NVIC_EnableIRQ(UARTE0_UART0_IRQn);
-
     //=== UART1 to SCuM
+
     // TX: P0.26
     // RX: P0.02
     // FTDI cable:
@@ -234,6 +201,7 @@ void uarts_init(void) {
 //=========================== interrupt handlers ==============================
 
 void RTC0_IRQHandler(void) {
+    uint8_t dummy[3] = {1,2,3};
 
     // debug
     app_dbg.num_ISR_RTC0_IRQHandler++;
@@ -252,31 +220,8 @@ void RTC0_IRQHandler(void) {
 
         // handle
         led_advance();
+        openhdlc_send(dummy,3);
      }
-}
-
-void UARTE0_UART0_IRQHandler(void) {
-
-    // debug
-    app_dbg.num_ISR_UARTE0_UART0_IRQHandler++;
-
-    if (NRF_UARTE0->EVENTS_ENDRX == 0x00000001) {
-        // byte received from DK
-
-        // clear
-        NRF_UARTE0->EVENTS_ENDRX = 0x00000000;
-
-        // debug
-        app_dbg.num_ISR_UARTE0_UART0_IRQHandler_ENDRX++;
-
-        // send byte to SCuM
-        app_vars.uart_buf_SCuM_TX[0] = app_vars.uart_buf_DK_RX[0];
-
-        // start sending
-        NRF_UARTE1->EVENTS_TXSTARTED = 0x00000000;
-        NRF_UARTE1->TASKS_STARTTX = 0x00000001;
-        while (NRF_UARTE1->EVENTS_TXSTARTED == 0x00000000);
-    }
 }
 
 void UARTE1_IRQHandler(void) {
