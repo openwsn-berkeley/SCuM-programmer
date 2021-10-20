@@ -49,7 +49,8 @@ static const uint16_t fcstab[256] = {
     0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
 };
 
-#define SERIAL_INPUT_BUFFER_SIZE  (1+1+1000+1) // flag, type, payload, flag
+// without escape bytes, HDLC flags. Does contain the CRC
+#define SERIAL_INPUT_BUFFER_SIZE  (1+1+1+1024+2) // worst case is a 1024-byte chunk: type, offset, lenth, chunk, crc
 
 //=========================== typedef =========================================
 
@@ -73,7 +74,8 @@ typedef struct {
     // app-level
     uint32_t            num_frames_sent;
     uint32_t            num_frames_received_ok;
-    uint32_t            num_frames_received_error;
+    uint32_t            num_frames_received_err_overflow;
+    uint32_t            num_frames_received_err_crc;
     // bsp
     uint32_t            num_uart_bytes_sent;
     uint32_t            num_ISR_UARTE0_UART0_IRQHandler;

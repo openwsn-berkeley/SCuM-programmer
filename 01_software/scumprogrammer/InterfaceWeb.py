@@ -14,7 +14,7 @@ from scumprogrammer import ScumUtils as u
 class InterfaceWeb(object):
     
     TCPPORT                  = 8080
-    DFLT_BINFILE             = 'C:\\Users\\twatteyn\\Desktop\\AllGPIOToggle.bin'
+    DFLT_BINFILE             = 'dummy.bin'
     
     def __init__(self,scumConnector):
         

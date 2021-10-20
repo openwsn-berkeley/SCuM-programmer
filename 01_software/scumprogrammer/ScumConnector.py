@@ -1,4 +1,5 @@
 # built-in
+import time
 # third party
 # local
 from scumprogrammer import ScumUtils as u
@@ -6,7 +7,7 @@ from scumprogrammer import OpenHdlc
 
 class ScumConnector(object):
     
-    CHUNK_SIZE               = 1000
+    CHUNK_SIZE               = 100
     
     CMD_CLEAR                = 0x01
     CMD_CHUNK                = 0x02
@@ -58,19 +59,22 @@ class ScumConnector(object):
         chunks = []
         i=0
         while i<len(bindata):
-            chunks+= [bindata[i:i+self.CHUNK_SIZE]]
-            i     += self.CHUNK_SIZE
-        print('{} chunks of {} bytes each'.format(len(chunks),self.CHUNK_SIZE))
+            chunks += [bindata[i:i+self.CHUNK_SIZE]]
+            i      += self.CHUNK_SIZE
+        print('{} chunks of lengths {}'.format(len(chunks),[len(c) for c in chunks]))
         print('start')
+        startts = time.time()
         # send clear
         self.hdlc.send([self.CMD_CLEAR])
         
         # send chunks
-        for chunk in chunks:
-            self.hdlc.send([self.CMD_CHUNK]+chunk)
+        for (offset,chunk) in enumerate(chunks):
+            self.hdlc.send([self.CMD_CHUNK,offset%256,len(chunks)%256]+chunk)
         
         # send load
         self.hdlc.send([self.CMD_LOAD])
+        
+        print('end ({:03f})'.format(time.time()-startts))
     
     def reset(self):
         self.hdlc.send([self.CMD_RESET])

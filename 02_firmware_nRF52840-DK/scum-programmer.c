@@ -13,6 +13,14 @@ const uint8_t APP_VERSION[]         = {0x00,0x01};
 #define UART_BUF_SIZE               1
 #define NUM_LEDS                    4
 
+#define CHUNK_SIZE                  100
+
+#define CMD_CLEAR                   0x01
+#define CMD_CHUNK                   0x02
+#define CMD_LOAD                    0x03
+#define CMD_RESET                   0x04
+#define CMD_GPIOCAL                 0x05
+
 // https://infocenter.nordicsemi.com/index.jsp?topic=%2Fug_nrf52840_dk%2FUG%2Fdk%2Fhw_buttons_leds.html
 // Button 1 P0.11
 // Button 2 P0.12
@@ -25,26 +33,45 @@ const uint8_t APP_VERSION[]         = {0x00,0x01};
 
 //=========================== prototypes ======================================
 
-void openhdlc_rx(uint8_t* rxFrame, uint8_t rxFrameLen);
-void lfxtal_start(void);
-void hfclock_start(void);
-void led_enable(void);
-void led_advance(void);
-void uart1_init(void);
+// commands
+static bool cmd_handler_CLEAR(uint8_t* cmd, uint8_t cmdLen);
+static bool cmd_handler_CHUNK(uint8_t* cmd, uint8_t cmdLen);
+static bool cmd_handler_LOAD(uint8_t* cmd, uint8_t cmdLen);
+static bool cmd_handler_RESET(uint8_t* cmd, uint8_t cmdLen);
+static bool cmd_handler_GPIOCAL(uint8_t* cmd, uint8_t cmdLen);
+// hdlc
+static void openhdlc_rx(uint8_t* rxFrame, uint8_t rxFrameLen);
+// bsp
+static void lfxtal_start(void);
+static void hfclock_start(void);
+static void led_enable(void);
+static void led_advance(void);
+static void uart1_init(void);
 
 //=========================== variables =======================================
 
 typedef struct {
-    uint32_t       led_counter;
+    // image
+    uint8_t        scumbin[64*1024];
+    // uart
     uint8_t        uart_buf_DK_RX[UART_BUF_SIZE];
     uint8_t        uart_buf_DK_TX[UART_BUF_SIZE];
     uint8_t        uart_buf_SCuM_RX[UART_BUF_SIZE];
     uint8_t        uart_buf_SCuM_TX[UART_BUF_SIZE];
+    // led
+    uint32_t       led_counter;
+    
 } app_vars_t;
 
 app_vars_t app_vars;
 
 typedef struct {
+    uint32_t       num_command_CLEAR;
+    uint32_t       num_command_CHUNK;
+    uint32_t       num_command_LOAD;
+    uint32_t       num_command_RESET;
+    uint32_t       num_command_GPIOCAL;
+    uint32_t       num_command_invalid;
     uint32_t       num_task_loops;
     uint32_t       num_ISR_RTC0_IRQHandler;
     uint32_t       num_ISR_RTC0_IRQHandler_COMPARE0;
@@ -66,7 +93,7 @@ int main(void) {
     led_enable();
     uart1_init();
     openhdlc_init(&openhdlc_rx);
-
+    
     // main loop
     while(1) {
         
@@ -82,11 +109,124 @@ int main(void) {
 
 //=========================== private =========================================
 
-void openhdlc_rx(uint8_t* rxFrame, uint8_t rxFrameLen) {
-    // TODO
+//=== commands
+
+static bool cmd_handler_CLEAR(uint8_t* cmd, uint8_t cmdLen) {
+    bool returnVal;
+
+    returnVal = false;
+    do {
+        // check
+        if (cmdLen!=0) {
+            break;
+        }
+        returnVal = true;
+
+        // do
+        memset(app_vars.scumbin,0x00,sizeof(app_vars.scumbin));
+
+    } while(0);
+
+    return returnVal;
 }
 
-//=== lfxtal
+static bool cmd_handler_CHUNK(uint8_t* cmd, uint8_t cmdLen) {
+    bool    returnVal;
+    uint8_t offset;
+    uint8_t numchunks;
+
+    returnVal = false;
+    do {
+        // check
+        if (cmdLen<2) {
+            break;
+        }
+        returnVal = true;
+
+        // do
+        offset    = cmd[0]; // shorthand
+        numchunks = cmd[1]; // shorthand
+        memcpy(
+            &app_vars.scumbin[CHUNK_SIZE*offset],
+            &cmd[2],
+            cmdLen-2
+        );
+    } while(0);
+
+    return returnVal;
+}
+
+static bool cmd_handler_LOAD(uint8_t* cmd, uint8_t cmdLen) {
+    bool returnVal;
+
+    returnVal = false;
+    do {
+        // check
+        if (cmdLen!=0) {
+            break;
+        }
+        returnVal = true;
+
+        // do
+        // TODO
+
+    } while(0);
+
+    return returnVal;
+}
+
+static bool cmd_handler_RESET(uint8_t* cmd, uint8_t cmdLen) {
+    return true; // TODO
+}
+
+static bool cmd_handler_GPIOCAL(uint8_t* cmd, uint8_t cmdLen){
+    return true; // TODO
+}
+
+//=== hdlc
+
+void openhdlc_rx(uint8_t* rxFrame, uint8_t rxFrameLen) {
+    
+    bool isValidCommand;
+
+    do {
+        
+        // abort if no space for type field
+        if (rxFrameLen<1) {
+            break;
+        }
+
+        switch(rxFrame[0]) {
+            case CMD_CLEAR:
+                isValidCommand = cmd_handler_CLEAR(&rxFrame[1],rxFrameLen-1);
+                if (isValidCommand==true) {app_dbg.num_command_CLEAR++;}
+                break;
+            case CMD_CHUNK:
+                isValidCommand = cmd_handler_CHUNK(&rxFrame[1],rxFrameLen-1);
+                if (isValidCommand==true) {app_dbg.num_command_CHUNK++;}
+                break;
+            case CMD_LOAD:
+                isValidCommand = cmd_handler_LOAD(&rxFrame[1],rxFrameLen-1);
+                if (isValidCommand==true) {app_dbg.num_command_LOAD++;}
+                break;
+            case CMD_RESET:
+                isValidCommand = cmd_handler_RESET(&rxFrame[1],rxFrameLen-1);
+                if (isValidCommand==true) {app_dbg.num_command_RESET++;}
+                break;
+            case CMD_GPIOCAL:
+                isValidCommand = cmd_handler_GPIOCAL(&rxFrame[1],rxFrameLen-1);
+                if (isValidCommand==true) {app_dbg.num_command_GPIOCAL++;}
+                break;
+        }
+    } while(0);
+    
+    if (isValidCommand==false) {
+        // debug
+        app_dbg.num_command_invalid++;
+    }
+}
+
+//=== bsp
 
 void lfxtal_start(void) {
     
@@ -97,16 +237,12 @@ void lfxtal_start(void) {
     while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0);
 }
 
-//=== hfclock
-
 void hfclock_start(void) {
     
     NRF_CLOCK->EVENTS_HFCLKSTARTED     = 0;
     NRF_CLOCK->TASKS_HFCLKSTART        = 0x00000001;
     while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);
 }
-
-//=== led
 
 void led_enable(void) {
     // do after LF XTAL started
@@ -219,7 +355,7 @@ void RTC0_IRQHandler(void) {
 
         // handle
         led_advance();
-        openhdlc_send(dummy,3);
+        //openhdlc_send(dummy,3);
      }
 }
 

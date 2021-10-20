@@ -45,7 +45,9 @@ void openhdlc_init(openhdlc_rx_cbt openhdlc_rx_cb) {
     NRF_UART0->PSEL.TXD                = 0x00000006; // 0x00000006==P0.6
     NRF_UART0->PSEL.RXD                = 0x00000008; // 0x00000008==P0.8
     NRF_UART0->CONFIG                  = 0x00000000; // 0x00000000==no flow control, no parity bits, 1 stop bit
-    NRF_UART0->BAUDRATE                = 0x10000000; // 0x10000000==1Mega baud
+    //NRF_UART0->BAUDRATE                = 0x10000000; // 0x10000000==1Mega baud
+    NRF_UART0->BAUDRATE                = 0x01D7E000; // 0x01D7E000==115200 baud (actual rate: 115942)
+    //NRF_UART0->BAUDRATE                = 0x00275000; // 0x00275000==9600 baud (actual rate: 9598)
     NRF_UART0->TASKS_STARTTX           = 0x00000001; // 0x00000001==start TX state machine; write to TXD to send
     NRF_UART0->TASKS_STARTRX           = 0x00000001; // 0x00000001==start RX state machine; read received byte from RXD register
     //  3           2            1           0
@@ -149,8 +151,8 @@ static void openhdlc_uart_rxByte(uint8_t rxbyte) {
         // add the byte just received
         openhdlc_input_write(rxbyte);
     } else if (
-      openhdlc_vars.hdlcBusyReceiving == true &&
-      rxbyte != HDLC_FLAG
+        openhdlc_vars.hdlcBusyReceiving == true &&
+        rxbyte != HDLC_FLAG
     ) {
         // middle of frame
 
@@ -159,6 +161,10 @@ static void openhdlc_uart_rxByte(uint8_t rxbyte) {
         if (openhdlc_vars.inputBufFillLevel + 1 > SERIAL_INPUT_BUFFER_SIZE) {
             // overflow
             
+            // debug
+            openhdlc_dbg.num_frames_received_err_overflow++;
+            
+            // reset
             openhdlc_vars.inputBufFillLevel = 0;
             openhdlc_vars.hdlcBusyReceiving = false;
         }
@@ -174,9 +180,9 @@ static void openhdlc_uart_rxByte(uint8_t rxbyte) {
 
         if (openhdlc_vars.inputBufFillLevel == 0) {
             // wrong CRC
-            
+
             // debug
-            openhdlc_dbg.num_frames_received_error++;
+            openhdlc_dbg.num_frames_received_err_crc++;
 
         } else {
             // good CRC

@@ -83,7 +83,7 @@ class OpenHdlc(threading.Thread):
         while True:
             try:
                 with self.datalock:
-                    self.ser           = serial.Serial(self.serialport,1000000)
+                    self.ser           = serial.Serial(self.serialport,115200)
                     self.isconnected   = True
                 while True:
                     c = self.ser.read(1)
@@ -92,7 +92,6 @@ class OpenHdlc(threading.Thread):
                     b = ord(c)
                     self._rx_byte(b)
             except Exception as err:
-                print(err)
                 with self.datalock:
                     self.isconnected   = False
                 time.sleep(3)
@@ -115,6 +114,7 @@ class OpenHdlc(threading.Thread):
         txbuf = self._hdlcify(frame)
         with self.serialTxLock:
             self.ser.write(txbuf)
+            time.sleep(0.100)
     
     #======================== private =========================================
     
