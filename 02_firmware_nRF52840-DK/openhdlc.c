@@ -120,6 +120,11 @@ static void openhdlc_ouput_close(void) {
 }
 
 static void openhdlc_uart_txByte(uint8_t byte) {
+    
+    // debug
+    openhdlc_dbg.num_uart_bytes_sent++;
+    
+    // send
     NRF_UART0->EVENTS_TXDRDY = 0x00000000;
     NRF_UART0->TXD           = byte;
     while(NRF_UART0->EVENTS_TXDRDY == 0x00000000);
@@ -248,9 +253,15 @@ static uint16_t openhdlc_crcIteration(uint16_t crc, uint8_t byte) {
 
 void UARTE0_UART0_IRQHandler(void) {
 
+    // debug
+    openhdlc_dbg.num_ISR_UARTE0_UART0_IRQHandler++;
+
     if (NRF_UART0->EVENTS_RXDRDY == 0x00000001) {
         // byte received from computer
 
+        // debug
+        openhdlc_dbg.num_ISR_UARTE0_UART0_IRQHandler_RXDRDY++;
+       
         // clear
         NRF_UART0->EVENTS_RXDRDY = 0x00000000;
 

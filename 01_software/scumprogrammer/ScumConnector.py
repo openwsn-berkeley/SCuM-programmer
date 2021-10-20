@@ -6,7 +6,7 @@ from scumprogrammer import OpenHdlc
 
 class ScumConnector(object):
     
-    CHUNK_SIZE               = 50
+    CHUNK_SIZE               = 1000
     
     CMD_CLEAR                = 0x01
     CMD_CHUNK                = 0x02
@@ -85,4 +85,4 @@ class ScumConnector(object):
     #======================== private =========================================
     
     def _hdlc_rx_frame_cb(self,frame):
-        print('_hdlc_rx_frame_cb {}'.format(frame))
+        pass # TODO

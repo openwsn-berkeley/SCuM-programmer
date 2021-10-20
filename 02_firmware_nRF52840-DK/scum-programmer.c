@@ -59,7 +59,7 @@ app_dbg_t app_dbg;
 //=========================== main ============================================
 
 int main(void) {
-        
+    
     // bsp
     lfxtal_start();
     hfclock_start();
