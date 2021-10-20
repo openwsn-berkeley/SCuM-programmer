@@ -111,10 +111,10 @@ class OpenHdlc(threading.Thread):
        with self.datalock:
             return self.isconnected
     
-    def send(self,buf):
-        msg = self._hdlcify(msg)
+    def send(self,frame):
+        txbuf = self._hdlcify(frame)
         with self.serialTxLock:
-            self.ser.write(msg)
+            self.ser.write(txbuf)
     
     #======================== private =========================================
     
