@@ -20,7 +20,7 @@ function loadSvg() {
 function buildPage() {
     
     // buttons can be clicked
-    buttonNames = ["bootload","reset","GPIOcal"]
+    buttonNames = ["transfer","clear","load","reset","GPIOcal"]
     for (var i in buttonNames) {
         d3.select("#button_"+buttonNames[i]+"_rect")
             .classed("button", true);

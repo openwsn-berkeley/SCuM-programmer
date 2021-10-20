@@ -87,8 +87,12 @@ class InterfaceWeb(object):
     def _webhandle_action_POST(self):
         cmdjson = bottle.request.json
         elem    = cmdjson['element'][len("button_"):-len("_rect")]
-        if   elem=='bootload':
-            self.scumConnector.bootload(self.binfile)
+        if   elem=='transfer':
+            self.scumConnector.transfer(self.binfile)
+        elif elem=='clear':
+            self.scumConnector.clear()
+        elif elem=='load':
+            self.scumConnector.load()
         elif elem=='reset':
             self.scumConnector.reset()
         elif elem=='GPIOcal':

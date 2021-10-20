@@ -176,11 +176,41 @@ static bool cmd_handler_LOAD(uint8_t* cmd, uint8_t cmdLen) {
 }
 
 static bool cmd_handler_RESET(uint8_t* cmd, uint8_t cmdLen) {
-    return true; // TODO
+    bool returnVal;
+
+    returnVal = false;
+    do {
+        // check
+        if (cmdLen!=0) {
+            break;
+        }
+        returnVal = true;
+
+        // do
+        // TODO
+
+    } while(0);
+
+    return returnVal;
 }
 
 static bool cmd_handler_GPIOCAL(uint8_t* cmd, uint8_t cmdLen){
-    return true; // TODO
+    bool returnVal;
+
+    returnVal = false;
+    do {
+        // check
+        if (cmdLen!=1) {
+            break;
+        }
+        returnVal = true;
+
+        // do
+        // TODO
+
+    } while(0);
+
+    return returnVal;
 }
 
 //=== hdlc

@@ -48,7 +48,7 @@ class ScumConnector(object):
     
     #=== commands
     
-    def bootload(self,binfile):
+    def transfer(self,binfile):
     
         # read file
         with open(binfile,'rb') as f:
@@ -71,10 +71,13 @@ class ScumConnector(object):
         for (offset,chunk) in enumerate(chunks):
             self.hdlc.send([self.CMD_CHUNK,offset%256,len(chunks)%256]+chunk)
         
-        # send load
-        self.hdlc.send([self.CMD_LOAD])
-        
         print('end ({:03f})'.format(time.time()-startts))
+    
+    def clear(self):
+        self.hdlc.send([self.CMD_CLEAR])
+    
+    def load(self):
+        self.hdlc.send([self.CMD_LOAD])
     
     def reset(self):
         self.hdlc.send([self.CMD_RESET])
