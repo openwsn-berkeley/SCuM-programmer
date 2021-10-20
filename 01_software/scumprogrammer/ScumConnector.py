@@ -1,15 +1,12 @@
 # built-in
-import threading
-import time
 # third party
-import serial
 # local
 from scumprogrammer import ScumUtils as u
 from scumprogrammer import OpenHdlc
 
-class ScumConnector(threading.Thread):
+class ScumConnector(object):
     
-    CHUNK_SIZE               = 100
+    CHUNK_SIZE               = 50
     
     CMD_CLEAR                = 0x01
     CMD_CHUNK                = 0x02
@@ -24,53 +21,29 @@ class ScumConnector(threading.Thread):
         CMD_GPIOCAL,
     ]
     
-    def __init__(self,serialport=None):
+    def __init__(self,serialport):
         
         # store params
         self.serialport      = serialport
         
         # local variables
-        self.hdlc            = OpenHdlc.OpenHdlc()
-        self.datalock        = threading.RLock()
-        self.serialTxLock    = threading.RLock()
-        self.isconnected     = False
-        
-        # initialize thread
-        super(ScumConnector, self).__init__()
-        self.name            = 'ScumConnector'
-        self.daemon          = True
-        self.start()
-    
-    def run(self):
-        while True:
-            try:
-                with self.datalock:
-                    self.ser           = serial.Serial(self.serialport,1000000)
-                    self.isconnected   = True
-                while True:
-                    c = self.ser.read(1)
-                    if len(c)==0:
-                       raise Exception()
-            except Exception as err:
-                with self.datalock:
-                    self.isconnected   = False
-                time.sleep(3)
+        self.hdlc            = OpenHdlc.OpenHdlc(
+            serialport       = serialport,
+            rx_frame_cb      = self._hdlc_rx_frame_cb,
+        )
     
     #======================== public ==========================================
     
     #=== admin
     
     def set_serialport(self,serialport):
-        with self.datalock:
-            self.serialport = serialport
+        self.hdlc.set_serialport(serialport)
     
     def get_serialport(self):
-        with self.datalock:
-            return self.serialport
+        return self.hdlc.get_serialport()
     
     def get_isconnected(self):
-       with self.datalock:
-            return self.isconnected
+        return self.hdlc.get_isconnected()
     
     #=== commands
     
@@ -90,30 +63,26 @@ class ScumConnector(threading.Thread):
         print('{} chunks of {} bytes each'.format(len(chunks),self.CHUNK_SIZE))
         print('start')
         # send clear
-        self._serialsend([self.CMD_CLEAR])
+        self.hdlc.send([self.CMD_CLEAR])
         
         # send chunks
         for chunk in chunks:
-            self._serialsend([self.CMD_CHUNK]+chunk)
+            self.hdlc.send([self.CMD_CHUNK]+chunk)
         
         # send load
-        self._serialsend([self.CMD_LOAD])
-        print('done')
+        self.hdlc.send([self.CMD_LOAD])
     
     def reset(self):
-        self._serialsend([self.CMD_RESET])
+        self.hdlc.send([self.CMD_RESET])
     
     def GPIOcal(self,isOn):
         if isOn:
             state = 0x01
         else:
             state = 0x00
-        self._serialsend([self.CMD_GPIOCAL,state])
+        self.hdlc.send([self.CMD_GPIOCAL,state])
     
     #======================== private =========================================
     
-    def _serialsend(self,msg):
-        # FIXME: ACK and retry
-        msg = self.hdlc.hdlcify(msg)
-        with self.serialTxLock:
-            self.ser.write(msg)
+    def _hdlc_rx_frame_cb(self,frame):
+        print('_hdlc_rx_frame_cb {}'.format(frame))

@@ -1,9 +1,18 @@
-
+# built-in
+import time
+import threading
+# third party
+import serial
+# local
 
 class HdlcException(Exception):
     pass
 
-class OpenHdlc(object):
+class OpenHdlc(threading.Thread):
+    '''
+    Manages the serial port, frames/unframes uses HDLC, reconnects.
+    '''
+    
     HDLC_FLAG           = 0x7e
     HDLC_FLAG_ESCAPED   = 0x5e
     HDLC_ESCAPE         = 0x7d
@@ -46,9 +55,113 @@ class OpenHdlc(object):
         0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78,
     )
 
-    # ============================ public ======================================
+    def __init__(self,serialport,rx_frame_cb):
+        
+        # store params
+        self.serialport           = serialport
+        self.rx_frame_cb          = rx_frame_cb
+        
+        # local variables
+        # serial
+        self.serialTxLock         = threading.RLock()
+        self.datalock             = threading.RLock()
+        self.isconnected          = False
+        # hdlc
+        self.rx_buf               = []
+        self.start_flag_rxed      = False
+        self.receiving            = False
+        
+        # initialize thread
+        super(OpenHdlc, self).__init__()
+        self.name                 = 'OpenHdlc'
+        self.daemon               = True
+        self.start()
+    
+    #======================== thread ==========================================
+    
+    def run(self):
+        while True:
+            try:
+                with self.datalock:
+                    self.ser           = serial.Serial(self.serialport,1000000)
+                    self.isconnected   = True
+                while True:
+                    c = self.ser.read(1)
+                    if len(c)==0:
+                        raise Exception()
+                    b = ord(c)
+                    self._rx_byte(b)
+            except Exception as err:
+                print(err)
+                with self.datalock:
+                    self.isconnected   = False
+                time.sleep(3)
+    
+    #======================== public ==========================================
 
-    def hdlcify(self, in_buf):
+    def set_serialport(self,serialport):
+        with self.datalock:
+            self.serialport = serialport
+    
+    def get_serialport(self):
+        with self.datalock:
+            return self.serialport
+    
+    def get_isconnected(self):
+       with self.datalock:
+            return self.isconnected
+    
+    def send(self,buf):
+        msg = self._hdlcify(msg)
+        with self.serialTxLock:
+            self.ser.write(msg)
+    
+    #======================== private =========================================
+    
+    def _rx_byte(self, b):
+        
+        if not self.receiving:
+            if self.start_flag_rxed==True and b!=self.HDLC_FLAG:
+                # start of frame
+
+                self.receiving              = True
+                
+                # discard received self.start_flag_rxed
+                self.start_flag_rxed        = False
+                self.rx_buf                 = []
+                self.rx_buf                += [self.HDLC_FLAG]
+                self.rx_buf                += [b]
+            
+            elif b==self.HDLC_FLAG:
+                # received opening hdlc flag
+                
+                self.start_flag_rxed = True
+            else:
+                # drop garbage
+                
+                pass
+        else:
+            if b != self.HDLC_FLAG:
+                # middle of frame
+                
+                self.rx_buf                += [b]
+            else:
+                # end of frame (received self.hdlc_flag)
+                
+                self.receiving              = False
+                self.rx_buf                += [self.HDLC_FLAG]
+                
+                try:
+                    # pass to upper layer
+                    frame                   = self._dehdlcify(self.rx_buf)
+                    self.rx_frame_cb(frame)
+                except HdlcException:
+                    # invalid HDLC frame
+                    pass
+                finally:
+                    self.rx_buf                  = []
+    
+    def _hdlcify(self, in_buf):
         """
         in_buf: example [0x01, 0x02, 0x03]
         """
@@ -76,11 +189,12 @@ class OpenHdlc(object):
 
         return out_buf
 
-    def dehdlcify(self, in_buf):
+    def _dehdlcify(self, in_buf):
         """
         Parse an hdlc frame.
 
-        :returns: the extracted frame, or -1 if wrong checksum
+        \returns The extracted frame
+        \raises  HdlcException when packet too short or wrong CRC
         """
 
         # make copy of input
@@ -111,8 +225,6 @@ class OpenHdlc(object):
         out_buf    = out_buf[:-2]
         
         return out_buf
-
-    # ============================ private =====================================
 
     def _crc_iteration(self, crc, b):
         return (crc >> 8) ^ self.FCS16TAB[((crc ^ b) & 0xff)]
