@@ -67,7 +67,7 @@ typedef struct {
     bool                hdlcInputEscaping;
     // output
     uint16_t            hdlcOutputCrc;
-} openserial_vars_t;
+} openhdlc_vars_t;
 
 //=========================== prototypes ======================================
 
