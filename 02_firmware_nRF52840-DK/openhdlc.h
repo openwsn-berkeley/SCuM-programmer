@@ -69,6 +69,12 @@ typedef struct {
     uint16_t            hdlcOutputCrc;
 } openhdlc_vars_t;
 
+typedef struct {
+    uint32_t            num_frames_sent;
+    uint32_t            num_frames_received_ok;
+    uint32_t            num_frames_received_error;
+} openhdlc_dbg_t;
+
 //=========================== prototypes ======================================
 
 void openhdlc_init(openhdlc_rx_cbt openhdlc_rx_cb);

@@ -59,17 +59,17 @@ app_dbg_t app_dbg;
 //=========================== main ============================================
 
 int main(void) {
+        
+    // bsp
+    lfxtal_start();
+    hfclock_start();
+    led_enable();
+    uart1_init();
+    openhdlc_init(&openhdlc_rx);
 
     // main loop
     while(1) {
         
-        // bsp
-        lfxtal_start();
-        hfclock_start();
-        led_enable();
-        uart1_init();
-        openhdlc_init(&openhdlc_rx);
-
         // wait for event
         __SEV(); // set event
         __WFE(); // wait for event
@@ -95,7 +95,6 @@ void lfxtal_start(void) {
     NRF_CLOCK->EVENTS_LFCLKSTARTED     = 0;
     NRF_CLOCK->TASKS_LFCLKSTART        = 0x00000001;
     while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0);
-
 }
 
 //=== hfclock
@@ -132,7 +131,7 @@ void led_enable(void) {
     NVIC_EnableIRQ(RTC0_IRQn);
     
     //
-    NRF_RTC0->CC[0]                    = (32768>>3);       // 32768>>3 = 125 ms
+    NRF_RTC0->CC[0]                    = (32768>>3);       // (32768>>3) = 125 ms
     NRF_RTC0->TASKS_START              = 0x00000001;       // start RTC0
 }
 

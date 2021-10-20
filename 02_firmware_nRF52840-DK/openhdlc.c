@@ -4,6 +4,7 @@
 //=========================== variables =======================================
 
 openhdlc_vars_t openhdlc_vars;
+openhdlc_dbg_t  openhdlc_dbg;
 
 //=========================== prototypes ======================================
 
@@ -28,6 +29,7 @@ void openhdlc_init(openhdlc_rx_cbt openhdlc_rx_cb) {
 
     // initialize variables
     memset(&openhdlc_vars,0x00,sizeof(openhdlc_vars_t));
+    memset(&openhdlc_dbg, 0x00,sizeof(openhdlc_dbg_t));
     openhdlc_vars.openhdlc_rx_cb = openhdlc_rx_cb;
 
     //=== UART0 to computer
@@ -67,6 +69,9 @@ void openhdlc_init(openhdlc_rx_cbt openhdlc_rx_cb) {
 void openhdlc_send(uint8_t* txBuf, uint8_t txBufLen) {
     uint8_t i;
     
+    // debug
+    openhdlc_dbg.num_frames_sent++;
+
     openhdlc_ouput_open();
     for (i = 0; i < txBufLen; i++) {
         openhdlc_ouput_write(txBuf[i]);
@@ -116,7 +121,7 @@ static void openhdlc_ouput_close(void) {
 
 static void openhdlc_uart_txByte(uint8_t byte) {
     NRF_UART0->EVENTS_TXDRDY = 0x00000000;
-    NRF_UART0-> TXD          = byte;
+    NRF_UART0->TXD           = byte;
     while(NRF_UART0->EVENTS_TXDRDY == 0x00000000);
 }
 
@@ -165,13 +170,22 @@ static void openhdlc_uart_rxByte(uint8_t rxbyte) {
         if (openhdlc_vars.inputBufFillLevel == 0) {
             // wrong CRC
             
+            // debug
+            openhdlc_dbg.num_frames_received_error++;
+
         } else {
             // good CRC
 
+            // debug
+            openhdlc_dbg.num_frames_received_ok++;
+
+            // handle
             openhdlc_vars.openhdlc_rx_cb(
                 openhdlc_vars.inputBuf,
                 openhdlc_vars.inputBufFillLevel
             );
+
+            // reset
             openhdlc_vars.inputBufFillLevel = 0;
         }
     }
