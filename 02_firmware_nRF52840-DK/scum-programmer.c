@@ -42,6 +42,7 @@ static bool cmd_handler_GPIOCAL(uint8_t* cmd, uint8_t cmdLen);
 // hdlc
 static void openhdlc_rx(uint8_t* rxFrame, uint8_t rxFrameLen);
 // bsp
+static void set_voltage(void);
 static void lfxtal_start(void);
 static void hfclock_start(void);
 static void led_enable(void);
@@ -86,8 +87,9 @@ app_dbg_t app_dbg;
 //=========================== main ============================================
 
 int main(void) {
-    
+
     // bsp
+    set_voltage(); // do first, might reset the part
     lfxtal_start();
     hfclock_start();
     led_enable();
@@ -257,6 +259,36 @@ void openhdlc_rx(uint8_t* rxFrame, uint8_t rxFrameLen) {
 }
 
 //=== bsp
+
+void set_voltage(void) {
+    
+    // abort if already right voltage
+    if (NRF_UICR->REGOUT0==7) {
+        return;
+    }
+        
+    // enable erase of non-volatile memory
+    NRF_NVMC->CONFIG          = 2; // 2 == Erase enabled
+    while (NRF_NVMC->READY == 0);
+
+    // erase UICR
+    NRF_NVMC->ERASEUICR       = 1;
+    while (NRF_NVMC->READY == 0);
+
+    // enable write of non-volatile memory
+    NRF_NVMC->CONFIG          = 1; // 1 == Write enabled
+    while (NRF_NVMC->READY == 0);
+
+    // change value
+    NRF_UICR->REGOUT0         = 7; // setting 7 is the default one, corresponding to 1.8V
+
+    // switch non-volatile memory to read-only
+    NRF_NVMC->CONFIG          = 0; // 0 == read-only
+    while (NRF_NVMC->READY == 0);
+
+    // reset part
+    NVIC_SystemReset();
+}
 
 void lfxtal_start(void) {
     
