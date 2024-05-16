@@ -62,7 +62,7 @@
     </folder>
     <folder Name="Source Files">
       <configuration Name="Common" filter="c;cpp;cxx;cc;h;s;asm;inc" />
-      <file file_name="SCuM-programmer.c" />
+      <file file_name="scum-programmer.c" />
     </folder>
     <folder Name="System Files">
       <file file_name="SEGGER_THUMB_Startup.s" />
